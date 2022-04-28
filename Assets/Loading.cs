@@ -1,5 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Text;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.AddressableAssets.ResourceLocators;
@@ -13,24 +17,67 @@ public class Loading : MonoBehaviour
     void Awake()
     {
         instance = this;
+        string dir = Application.streamingAssetsPath + "/AssetBundles"; //相对路径
+        if (!Directory.Exists(dir))   //判断路径是否存在
+        {
+            Directory.CreateDirectory(dir);
+        }
+        BuildPipeline.BuildAssetBundles(dir, BuildAssetBundleOptions.None, BuildTarget.StandaloneWindows);
+        //Addressables.InitializeAsync();
+        //Directory.CreateDirectory(Application.streamingAssetsPath);
+        //Directory.CreateDirectory(Application.dataPath);
+        //File.WriteAllText(Application.dataPath + "/data.txt", Application.dataPath);
+        //File.WriteAllText(Application.streamingAssetsPath + "/data.txt", Application.streamingAssetsPath);
+        //var data=  GetWebRequest(@"http://127.0.0.1:5565/catalog_2022.04.28.00.43.55.json");
+    }
+    private static string GetWebRequest(string getUrl)
+    {
+        string responseContent = "";
+        
+        HttpWebRequest request = (HttpWebRequest)WebRequest.Create(getUrl);
+        request.ContentType = "application/json";
+        request.Method = "GET";
+
+        HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+        //在这里对接收到的页面内容进行处理
+        using (Stream resStream = response.GetResponseStream())
+        {
+            using (StreamReader reader = new StreamReader(resStream, Encoding.UTF8))
+            {
+                responseContent = reader.ReadToEnd().ToString();
+            }
+        }
+        return responseContent;
     }
     // Update is called once per frame
-    private void OnGUI()
+    private async void OnGUI()
     {
 
         if (GUI.Button(new Rect(100, 100, 100, 50), "热更新"))
         {
             //Addressables.CheckForCatalogUpdates();
+            var handle = Addressables.CheckForCatalogUpdates(false);
+            await handle.Task;
+            handle.Completed += Handle_Completed;
+            Addressables.UpdateCatalogs();
+            Addressables.DownloadDependenciesAsync(scene);
+
             //貌似第一次会从网络拿到缓存，第二次以后都是直接读缓存，不知道怎么更新版本
             //我想第一次判断版本对不对，不对的话下载到本地，之后都从本地下载，每次加载前都能校验版本
             scene.LoadSceneAsync();
         }
         if (GUI.Button(new Rect(100, 200, 100, 50), "卸载"))
         {
-            //Addressables.CheckForCatalogUpdates();
+
             instance.scene.UnLoadScene();
         }
     }
+
+    private void Handle_Completed(UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationHandle<List<string>> obj)
+    {
+        throw new System.NotImplementedException();
+    }
+
     public static void Unload()
     {
         instance.scene.UnLoadScene();
