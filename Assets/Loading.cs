@@ -7,22 +7,16 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.AddressableAssets.ResourceLocators;
+using UnityEngine.ResourceManagement.ResourceProviders;
 using UnityEngine.SceneManagement;
 
 public class Loading : MonoBehaviour
 {
-    public AssetReference scene;
     static public Loading instance;
     // Start is called before the first frame update
     void Awake()
     {
         instance = this;
-        string dir = Application.streamingAssetsPath + "/AssetBundles"; //相对路径
-        if (!Directory.Exists(dir))   //判断路径是否存在
-        {
-            Directory.CreateDirectory(dir);
-        }
-        BuildPipeline.BuildAssetBundles(dir, BuildAssetBundleOptions.None, BuildTarget.StandaloneWindows);
         //Addressables.InitializeAsync();
         //Directory.CreateDirectory(Application.streamingAssetsPath);
         //Directory.CreateDirectory(Application.dataPath);
@@ -50,37 +44,50 @@ public class Loading : MonoBehaviour
         return responseContent;
     }
     // Update is called once per frame
+    static AssetBundle ab;
+    private void Start()
+    {
+        ab?.Unload(true);
+        ab = AssetBundle.LoadFromFile(Application.streamingAssetsPath + "/AssetBundles/scene.gezi");
+        SceneManager.LoadScene("hotfixed");
+    }
     private async void OnGUI()
     {
 
         if (GUI.Button(new Rect(100, 100, 100, 50), "热更新"))
         {
-            //Addressables.CheckForCatalogUpdates();
-            var handle = Addressables.CheckForCatalogUpdates(false);
-            await handle.Task;
-            handle.Completed += Handle_Completed;
-            Addressables.UpdateCatalogs();
-            Addressables.DownloadDependenciesAsync(scene);
-
-            //貌似第一次会从网络拿到缓存，第二次以后都是直接读缓存，不知道怎么更新版本
-            //我想第一次判断版本对不对，不对的话下载到本地，之后都从本地下载，每次加载前都能校验版本
-            scene.LoadSceneAsync();
+             ab = AssetBundle.LoadFromFile(Application.streamingAssetsPath+ "/AssetBundles/scene.gezi");
+            SceneManager.LoadScene("hotfixed");
+            //ab.LoadAssetAsync<Scene>("hotfixed").completed += (scene =>
+            //{
+               
+            //});
+            //包中的场景名字
+            
+            //Addressables.LoadAsset
+            //Addressables.LoadSceneAsync("scene", LoadSceneMode.Single).Completed += (obj =>
+            //{
+            //    sceneInstance= obj.Result;
+            //});
         }
         if (GUI.Button(new Rect(100, 200, 100, 50), "卸载"))
         {
-
-            instance.scene.UnLoadScene();
+            ab.Unload(true);
         }
     }
+    //Addressables.CheckForCatalogUpdates();
+    //var handle = Addressables.CheckForCatalogUpdates(false);
+    //await handle.Task;
+    //handle.Completed += Handle_Completed;
+    //Addressables.UpdateCatalogs();
+    //Addressables.DownloadDependenciesAsync(scene);
 
-    private void Handle_Completed(UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationHandle<List<string>> obj)
-    {
-        throw new System.NotImplementedException();
-    }
+    //貌似第一次会从网络拿到缓存，第二次以后都是直接读缓存，不知道怎么更新版本
+    //我想第一次判断版本对不对，不对的话下载到本地，之后都从本地下载，每次加载前都能校验版本
 
     public static void Unload()
     {
-        instance.scene.UnLoadScene();
+        //instance.scene.UnLoadScene();
     }
     //IEnumerator Start()
     //{
