@@ -10,7 +10,7 @@ public class CreateAssetBundles : MonoBehaviour
     static void BuildAssetBundle()
     {
         string dir = Application.streamingAssetsPath + "/AssetBundles"; //相对路径
-        string PCAssetBundles = @"G:\UnityProject\热更新测试\PC\热更新测试_Data\StreamingAssets\AssetBundles";
+        string PCAssetBundles = @"D:\vs2022-Project\hotfixed\PC\hotfixed_Data\StreamingAssets\AssetBundles";
         Directory.CreateDirectory(dir);
         Directory.CreateDirectory(PCAssetBundles);
         BuildPipeline.BuildAssetBundles(dir, BuildAssetBundleOptions.None, BuildTarget.StandaloneWindows);

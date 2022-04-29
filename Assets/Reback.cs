@@ -10,30 +10,34 @@ public class Reback : MonoBehaviour
 {
     // Start is called before the first frame update
     static DateTime lastUpdateTime;
-    static FileInfo ab=> new FileInfo(@"G:\UnityProject\热更新测试\PC\热更新测试_Data\StreamingAssets\AssetBundles\scene.gezi");
-    void Start()
+    static FileInfo ab => new FileInfo(Application.streamingAssetsPath + "/AssetBundles/scene.gezi");
+    public GameObject cube;
+     async void Start()
     {
-    //    ab = new FileInfo(@"G:\UnityProject\热更新测试\PC\热更新测试_Data\StreamingAssets\AssetBundles\scene.gezi");
-    //    ab = new FileInfo(@"G:\UnityProject\热更新测试\Assets\StreamingAssets\AssetBundles\scene.gezi");
+        cube.AddComponent(DllManager.GetScript());
         lastUpdateTime = ab.LastWriteTime;
-    }
+        await Task.Delay(3140);
+        Debug.Log("重载场景");
+        SceneManager.LoadScene(0);
 
-    // Update is called once per frame
+    }
     void Update()
     {
+
         if (lastUpdateTime != ab.LastWriteTime)
         {
-            SceneManager.LoadScene(0, LoadSceneMode.Single);
+            Debug.Log("重载场景");
             lastUpdateTime = ab.LastWriteTime;
+            SceneManager.LoadScene(0);
         }
     }
-    private async Task OnGUI()
-    {
-        if (GUI.Button(new Rect(100, 100, 100, 50), "返回"))
-        {
-            //SceneManager.LoadScene(0,LoadSceneMode.Single);
-            //await Task.Delay(1000);
-            //Loading.Unload();
-        }
-    }
+    //private async Task OnGUI()
+    //{
+    //    if (GUI.Button(new Rect(100, 100, 100, 50), "返回"))
+    //    {
+    //        //SceneManager.LoadScene(0,LoadSceneMode.Single);
+    //        //await Task.Delay(1000);
+    //        //Loading.Unload();
+    //    }
+    //}
 }
